@@ -1,0 +1,30 @@
+﻿@using TimeCore.Services
+@using System.Timers
+@inject TimerService timer
+
+@elapsed
+
+
+@code {
+    private string elapsed = string.Empty;
+    System.Timers.Timer clock;
+
+    protected override async Task OnInitializedAsync()
+    {
+        elapsed = timer.ElapsedFormatted;
+        clock = new System.Timers.Timer(1000);
+        clock.Elapsed += UpdateTime;
+        clock.AutoReset = true;
+        clock.Enabled = true;
+    }
+
+    private void UpdateTime(object source, ElapsedEventArgs e)
+    {
+        if (timer.IsRunning)
+        {
+            elapsed = timer.ElapsedFormatted;
+            //Console.WriteLine($"Updating elapsed time display: {elapsed} [{e.SignalTime}]");
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,38 @@
+﻿@page "/daypicker"
+<h3>Mini Day Picker</h3>
+
+@if (IncludeAll)
+{
+    <a href="#" @onclick:preventDefault @onclick=@(() => SetDay(DateTime.MinValue)) class="badge @(SelectedDate.Equals(DateTime.MinValue) ? "badge-primary" : "badge-secondary")">
+        all
+    </a>
+}
+@foreach (int i in Enumerable.Range(0, Amount).Reverse())
+{
+    DateTime date = DateTime.Now.AddDays(-i);
+    <a href="#" @onclick:preventDefault @onclick=@(() => SetDay(date)) class="badge @(SelectedDate.Date.Equals(date.Date) ? "badge-primary" : "badge-secondary")">
+        @(i == 0 ? "today" : i == 1 ?  "yesterday" : date.ToString("ddd"))
+    </a>
+
+}
+
+
+
+@code {
+
+    [Parameter] public bool IncludeAll { get; set; } = false;
+    [Parameter] public int Amount { get; set; } = 7;
+    [Parameter] public DateTime SelectedDate { get; set; } = DateTime.Now;
+    [Parameter] public Action<DateTime> OnValueChanged { get; set; }
+
+    //DateTime selectedDate = DateTime.Now.AddDays(-3);
+
+    void SetDay(DateTime date)
+    {
+        SelectedDate = date;
+        OnValueChanged(SelectedDate);
+    }
+
+
+
+}

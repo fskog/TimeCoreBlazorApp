@@ -1,0 +1,105 @@
+﻿@namespace TimeCore.Components
+@using TimeCore.Services
+@using MatBlazor
+@inject TimerService timer
+
+<div class="alert alert-secondary mt-4 pl-3" role="alert">
+    <div class="mb-3">
+        <MatDatePicker @bind-Value=@StartTime
+                       Format="t"
+                       Enable24hours=true
+                       EnableTime=true Disabled=(!timer.IsRunning)></MatDatePicker>
+    </div>
+    <span>@_startTime.ToString()</span>
+
+
+    <div class="mb-3">
+        <h1>
+            <button class=@(timer.IsRunning ? "btn btn-danger" : "btn btn-success") @onclick=ToggleTimer>@(timer.IsRunning ? "Stop" : "Start")</button>
+
+            <span class="display-1 badge @(timer.IsRunning ? "badge-primary" : "badge-seconday") badge-pill">
+                <TimeElapsed />
+            </span>
+        </h1>
+    </div>
+
+    <div class="mb-3">
+
+        <input type="text" class="col-auto border-bottom border-top-0 border-left-0 border-right-0 border-dark form-control mb-1 w-auto bg-transparent" style="border-style: dotted;" placeholder="(no description)" value="@title" @onchange="UpdateTitle" />
+        <div></div>
+        <span class="oi oi-clock mr-2" aria-hidden="true"></span>
+        <select class="col-auto custom-select bg-transparent w-auto border-0" id="category" @bind=SelectedCategory>
+            <option value=""></option>
+            @foreach (var category in timer.GetAllCategories())
+            {
+                <option value="@category.Key">@category.Value</option>
+            }
+        </select>
+    </div>
+    <span class="oi oi-clock mr-2" aria-hidden="true"></span>
+    <span>@timer.StartDate @timer.StartTime</span>
+</div>
+
+
+@code {
+
+    public DateTime _startTime;
+
+    public DateTime StartTime
+    {
+        get => _startTime;
+        set
+        {
+            _startTime = value;
+            Task.Run(UpdateStartTime);
+
+        }
+    }
+    string title = "";
+    string _selectedCategory = "";
+
+    string SelectedCategory
+    {
+        get => _selectedCategory;
+        set
+        {
+            _selectedCategory = value;
+            Task.Run(UpdateCategory);
+
+        }
+    }
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _startTime = timer.GetStartTime();
+        _selectedCategory = timer.CategorySystemId;
+    }
+
+    private void ToggleTimer()
+    {
+        timer.ToggleRunning();
+        StateHasChanged();
+    }
+
+    private void UpdateStartTime()
+    {
+        timer.SetStartTime(_startTime);
+        _startTime = timer.GetStartTime();
+    }
+    private void UpdateCategory()
+    {
+        timer.SetCategory(_selectedCategory);
+        _selectedCategory = timer.CategorySystemId;
+    }
+
+    private void UpdateTitle()
+    {
+        timer.SetTitle(title);
+        title = timer.Title;
+    }
+}
+
+

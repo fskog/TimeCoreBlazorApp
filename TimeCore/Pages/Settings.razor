@@ -1,0 +1,58 @@
+﻿@page "/settings"
+@inject Services.CategoryService categoryService
+@using TimeCore.Models
+
+<h1>Settings</h1>
+<p>Change your preferences</p>
+
+
+<h3>Category</h3>
+<p>Manage your cateogries.</p>
+
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="New category"
+           aria-label="New category..." aria-describedby="basic-addon2"
+           @bind-value=categoryInput @bind-value:event="oninput" >
+    <div class="input-group-append">
+        <button class="btn btn-outline-secondary" type="button" @onclick="AddCategory">
+        Create category</button>
+    </div>
+</div>
+
+
+<ul class="list-group">
+    @foreach (var category in categories)
+    {
+        <li class="list-group-item">
+            @category.Name
+            <a href="#" @onclick:preventDefault @onclick=@(() =>RemoveCategory(category.SystemId)) class="badge badge-pill badge-danger">Remove</a>
+        </li>
+
+    }
+</ul>
+
+@code {
+    string categoryInput = "";
+    List<Category> categories;
+    protected override async Task OnInitializedAsync()
+    {
+
+        categories = categoryService.GetAll();
+    }
+
+    private void RemoveCategory(Guid systemId)
+    {
+        categoryService.Remove(systemId);
+        StateHasChanged();
+    }
+
+    private void AddCategory()
+    {
+        if (!string.IsNullOrEmpty(categoryInput))
+        {
+            categoryService.Add(categoryInput);
+            categoryInput = "";
+            StateHasChanged();
+        }
+    }
+}
