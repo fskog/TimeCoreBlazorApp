@@ -1,7 +1,4 @@
-﻿@page "/daypicker"
-<h3>Mini Day Picker</h3>
-
-@if (IncludeAll)
+﻿@if (IncludeAll)
 {
     <a href="#" @onclick:preventDefault @onclick=@(() => SetDay(DateTime.MinValue)) class="badge @(SelectedDate.Equals(DateTime.MinValue) ? "badge-primary" : "badge-secondary")">
         all
@@ -22,15 +19,28 @@
 
     [Parameter] public bool IncludeAll { get; set; } = false;
     [Parameter] public int Amount { get; set; } = 7;
-    [Parameter] public DateTime SelectedDate { get; set; } = DateTime.Now;
-    [Parameter] public Action<DateTime> OnValueChanged { get; set; }
+
+
+
+    DateTime _date;
+    [Parameter]
+    public DateTime SelectedDate
+    {
+        get => _date;
+        set
+        {
+            if (_date == value) return;
+            _date = value;
+            OnValueChanged.InvokeAsync(value);
+        }
+    }
+    [Parameter] public EventCallback<DateTime> OnValueChanged { get; set; }
 
     //DateTime selectedDate = DateTime.Now.AddDays(-3);
 
     void SetDay(DateTime date)
     {
         SelectedDate = date;
-        OnValueChanged(SelectedDate);
     }
 
 

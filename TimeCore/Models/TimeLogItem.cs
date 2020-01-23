@@ -14,8 +14,11 @@ namespace TimeCore.Models
         public Guid CategorySystemId { get; private set; }
 
 
-        public TimeLogItem(DateTime startTime, DateTime endTime, string title = "untitled") =>
-            new TimeLogItem(startTime, endTime, title, Guid.Empty);
+        public TimeLogItem(DateTime startTime, DateTime endTime, string title = "untitled")
+            : this(startTime, endTime, title, Guid.Empty)
+        { }
+        
+         
 
         public TimeLogItem(DateTime startTime, DateTime endTime, string title, Guid cateogrySystemId)
         {

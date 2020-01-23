@@ -17,6 +17,17 @@ namespace TimeCore.Services
         {
             _logger = logger;
             TimeLog = new List<TimeLogItem>();
+
+            for(int i = 0; i < 12; i++)
+            {
+                var t = (int)i % 5;
+                var date = DateTime.Now;
+                var time = new TimeLogItem(date.AddDays(-t), date.AddDays(-t).AddHours(i), "some task");
+                _logger.LogInformation($"Adding timelog {System.Text.Json.JsonSerializer.Serialize(time)}");
+                TimeLog.Add(time);
+            }
+
+
         }
 
         public TimeLogItem Get(Guid systemId)
