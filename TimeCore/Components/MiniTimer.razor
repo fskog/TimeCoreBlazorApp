@@ -1,0 +1,66 @@
+﻿@using Services
+@inject TimerService _timer
+
+<div class="d-flex flex-fill align-content-center" href="#" @onclick:preventDefault @onclick=@(() => { expanded = !expanded; })>
+    <div class="d-flex justify-content-between align-items-center" @onclick:stopPropagation>
+        <button class=" @(_timer.IsRunning ? "btn btn-danger" : "btn btn-success")" @onclick=ToggleTimer>@(_timer.IsRunning ? "Stop" : "Start")</button>
+        <h1 class="mr-3 ml-3"><span class="badge badge-primary badge-pill display-4"><TimeElapsed></TimeElapsed></span></h1>
+        <input type="text" class="col-auto border-bottom border-top-0 border-left-0 border-right-0 border-dark form-control mb-1 w-auto bg-transparent"
+               style="border-style: dotted;" placeholder="(no description)" @bind-value="@Title" />
+        <select class="col-auto custom-select bg-transparent w-auto border-0" id="category" @bind="SelectedCategory">
+            <option value=""></option>
+            @foreach (var category in _timer.GetAllCategories())
+            {
+                <option value="@category.Key">@category.Value</option>
+            }
+        </select>
+    </div>
+</div>
+
+
+@code {
+    string SelectedCategory
+    {
+        get
+        {
+            return _timer.GetCategorySystemId().ToString();
+        }
+        set
+        {
+            _timer.SetCategory(value);
+        }
+    }
+
+    string Title
+    {
+        get
+        {
+            return _timer.Title;
+        }
+        set
+        {
+            _timer.SetTitle(value);
+        }
+    }
+
+    bool expanded = false;
+
+    public void OnTimerUpdated(object sender, EventArgs e)
+    {
+        Console.WriteLine($"[MiniTimer] OnTimerUpdated happened.");
+
+        StateHasChanged();
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _timer.TimerWasUpdated += OnTimerUpdated;
+    }
+
+    private void ToggleTimer()
+    {
+        _timer.ToggleRunning();
+        StateHasChanged();
+    }
+}

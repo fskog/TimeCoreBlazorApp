@@ -1,14 +1,31 @@
 ﻿@page "/counter"
 @inject Services.CounterService CounterService
+@inject Services.TimerService _timerService
 
 <h1>Counter</h1>
 
 <p>Current count: @CounterService.Count</p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">Title</span>
+    </div>
+    <input type="text" class="form-control" @bind-value="_title" @bind-value:event="oninput" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+</div>
+<button class="btn btn-success" @onclick=@(() => timer.SetTitle(_title))></button>
+<p>@_title</p>
+<p>@timer.Title</p>
+
 
 @code {
+    TimeCore.Models.Timer timer;
+    string _title = "";
 
+    protected override async Task OnInitializedAsync()
+    {
+        timer = _timerService.TestTimer;
+    }
 
     private void IncrementCount()
     {

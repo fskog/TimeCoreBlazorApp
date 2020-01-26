@@ -15,7 +15,10 @@ namespace TimeCore.Services
         private readonly TimeLogService _timeLogService;
         private readonly CategoryService _categoryService;
         private readonly ILogger<TimerService> _logger;
+        private Timer CurrentTimer;
+        public event EventHandler TimerWasUpdated;
 
+        public Timer TestTimer;
 
         public TimerService(TimeLogService timeLogService, CategoryService categoryService, ILogger<TimerService> logger)
         {
@@ -23,11 +26,29 @@ namespace TimeCore.Services
             _timeLogService = timeLogService;
             _logger = logger;
             CurrentTimer = new Timer();
+            TestTimer = new Timer();
         }
 
-        private Timer CurrentTimer;
+        
 
-        public string Title => CurrentTimer.Title;
+        void NotifyTimerWasUpdated()
+        {
+            _logger.LogInformation($"Fire event TimerWasUpdated.");
+            TimerWasUpdated.Invoke(this, null);
+        }
+
+        public string Title
+        {
+            get
+            {
+                return CurrentTimer.Title;
+            }
+            set
+            {
+                CurrentTimer.SetTitle(value);
+                NotifyTimerWasUpdated();
+            }
+        }
 
         public string CategorySystemId => CurrentTimer.CategorySystemId.ToString();
 
@@ -50,8 +71,10 @@ namespace TimeCore.Services
 
         public void SetTitle(string title)
         {
-            _logger.LogInformation("Setting new title", title);
+            _logger.LogInformation($"Setting new title: {title}", title);
             CurrentTimer.SetTitle(title);
+            NotifyTimerWasUpdated();
+
         }
 
         public void SetCategory(string categoryId)
@@ -63,6 +86,8 @@ namespace TimeCore.Services
                 {
                     _logger.LogInformation($"Setting new Category {category.SystemId}", category);
                     CurrentTimer.SetCategorySystemId(category.SystemId);
+                    NotifyTimerWasUpdated();
+
                 }
                 else
                 {
@@ -72,17 +97,33 @@ namespace TimeCore.Services
             else
             {
                 CurrentTimer.SetCategorySystemId(Guid.Empty);
+                NotifyTimerWasUpdated();
+
                 _logger.LogWarning("Setting empty Category", categoryId);
             }
 
+        }
+
+        public string GetCategory()
+        {
+            return _categoryService.Get(CurrentTimer.CategorySystemId)?.Name ?? "";
         }
 
         public Guid GetCategorySystemId() => CurrentTimer.CategorySystemId;
         public DateTime GetStartTime() => CurrentTimer.StartTime;
         public DateTime GetEndTime() => CurrentTimer.EndTime;
 
-        public void SetStartTime(DateTime time) => CurrentTimer.SetStartTime(time);
-        public void SetEndTime(DateTime time) => CurrentTimer.SetEndTime(time);
+        public void SetStartTime(DateTime time)
+        {
+            CurrentTimer.SetStartTime(time);
+            NotifyTimerWasUpdated();
+        }
+
+        public void SetEndTime(DateTime time)
+        {
+            CurrentTimer.SetEndTime(time);
+            NotifyTimerWasUpdated();
+        }
 
         public bool IsRunning => CurrentTimer.StartTime > DateTime.MinValue && CurrentTimer.EndTime != null && CurrentTimer.EndTime == DateTime.MinValue;
 
@@ -90,6 +131,7 @@ namespace TimeCore.Services
         {
             _logger.LogInformation("Starting new Timer");
             CurrentTimer.SetStartTime(DateTime.Now);
+            NotifyTimerWasUpdated();
         }
 
         private void Stop()
@@ -98,6 +140,7 @@ namespace TimeCore.Services
             CurrentTimer.SetEndTime(DateTime.Now);
             SaveTime();
             CurrentTimer = new Timer();
+            NotifyTimerWasUpdated();
         }
 
         public void SaveTime()
@@ -111,6 +154,8 @@ namespace TimeCore.Services
             _logger.LogInformation($"Adding new time log: {JsonSerializer.Serialize(newTimeLogItem)}");
             _timeLogService.Add(newTimeLogItem);
         }
+
+
 
         public void ToggleRunning()
         {

@@ -7,6 +7,8 @@ namespace TimeCore.Models
         public Guid SystemId { get; private set; }
         public string Name { get; private set; }
 
+        public int MyProperty { get; set; }
+
         public Category(string name = "New category")
         {
             Name = name;

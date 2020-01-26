@@ -5,29 +5,11 @@
 
 <div class="alert alert-secondary mt-4 pl-3" role="alert">
     <div class="mb-3">
-        <MatDatePicker @bind-Value=@StartTime
-                       Format="t"
-                       Enable24hours=true
-                       EnableTime=true Disabled=(!timer.IsRunning)></MatDatePicker>
-    </div>
-    <span>@_startTime.ToString()</span>
+        <button class=@(timer.IsRunning ? "btn btn-danger" : "btn btn-success") @onclick=ToggleTimer>@(timer.IsRunning ? "Stop" : "Start")</button>
 
-
-    <div class="mb-3">
-        <h1>
-            <button class=@(timer.IsRunning ? "btn btn-danger" : "btn btn-success") @onclick=ToggleTimer>@(timer.IsRunning ? "Stop" : "Start")</button>
-
-            <span class="display-1 badge @(timer.IsRunning ? "badge-primary" : "badge-seconday") badge-pill">
-                <TimeElapsed />
-            </span>
-        </h1>
-    </div>
-
-    <div class="mb-3">
-
-        <input type="text" class="col-auto border-bottom border-top-0 border-left-0 border-right-0 border-dark form-control mb-1 w-auto bg-transparent" style="border-style: dotted;" placeholder="(no description)" value="@title" @onchange="UpdateTitle" />
-        <div></div>
-        <span class="oi oi-clock mr-2" aria-hidden="true"></span>
+        <span class="display-1 badge @(timer.IsRunning ? "badge-primary" : "badge-seconday") badge-pill">
+            <TimeElapsed />
+        </span>
         <select class="col-auto custom-select bg-transparent w-auto border-0" id="category" @bind=SelectedCategory>
             <option value=""></option>
             @foreach (var category in timer.GetAllCategories())
@@ -35,15 +17,41 @@
                 <option value="@category.Key">@category.Value</option>
             }
         </select>
+        <input type="text" class="col-auto border-bottom border-top-0 border-left-0 border-right-0 border-dark form-control mb-1 w-auto bg-transparent"
+               style="border-style: dotted;" placeholder="(no description)" @bind-value="@Title" />
     </div>
-    <span class="oi oi-clock mr-2" aria-hidden="true"></span>
-    <span>@timer.StartDate @timer.StartTime</span>
-</div>
+    <div class="mb-3 row d-inline-flex">
+        <div class="flex">
+            <MatDatePicker @bind-Value=@StartTime
+                           Format="t"
+                           Enable24hours=true
+                           EnableTime=true Disabled=(!timer.IsRunning)></MatDatePicker>
+            <span>@_startTime.ToString()</span>
 
+        </div>
+        <div class="flex-column">
+            <MatDatePicker @bind-Value=@EndTime
+                           Format="t"
+                           Enable24hours=true
+                           EnableTime=true Disabled=(timer.IsRunning)></MatDatePicker>
+            <span>@_startTime.ToString()</span>
+
+        </div>
+    </div>
+</div>
 
 @code {
 
+    public void OnTimerUpdated(object sender, EventArgs e)
+    {
+        StateHasChanged();
+    }
+
+
+
+
     public DateTime _startTime;
+    public DateTime _endTime;
 
     public DateTime StartTime
     {
@@ -55,6 +63,23 @@
 
         }
     }
+
+    public DateTime EndTime
+    {
+        get
+        {
+            return _endTime;
+        }
+
+        set
+        {
+            _endTime = value;
+            Task.Run(UpdateEndTime);
+
+        }
+    }
+
+
     string title = "";
     string _selectedCategory = "";
 
@@ -69,12 +94,24 @@
         }
     }
 
+    string Title
+    {
+        get { return timer.Title; }
+        set
+        {
+            Console.WriteLine($"Timer.razor: Title prop Set fired with value: {value}");
+            timer.SetTitle(value);
+        }
+    }
+
 
 
 
     protected override async Task OnInitializedAsync()
     {
+        timer.TimerWasUpdated += OnTimerUpdated;
         _startTime = timer.GetStartTime();
+        _endTime = timer.GetEndTime();
         _selectedCategory = timer.CategorySystemId;
     }
 
@@ -88,6 +125,12 @@
     {
         timer.SetStartTime(_startTime);
         _startTime = timer.GetStartTime();
+    }
+
+    private void UpdateEndTime()
+    {
+        timer.SetStartTime(_endTime);
+        _startTime = timer.GetEndTime();
     }
     private void UpdateCategory()
     {
